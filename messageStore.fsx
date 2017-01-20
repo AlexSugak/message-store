@@ -57,7 +57,7 @@ module StoreLogger =
         log Debug (sprintf "Reading message %A." id)
         let msg = reader id
         match msg with
-        | None -> log Debug (sprintf "No message %A found." id)
+        | None   -> log Debug (sprintf "No message %A found." id)
         | Some _ -> log Debug (sprintf "Returning message %A." id)
         msg  
 
@@ -72,31 +72,29 @@ module StoreCache =
     let read (cache: ConcurrentDictionary<MessageId, Message>) reader id = 
         match cache.TryGetValue id with 
         | true, msg -> msg |> Some
-        | false, _ -> reader id
-
-
-let workingDir = new DirectoryInfo("C:\Temp")
-let dic = new ConcurrentDictionary<MessageId, Message>()
-let logToConsole level msg = printfn "%A: %s" level msg
+        | false, _  -> reader id
 
 // composition
 
+let workingDir = new DirectoryInfo("C:\Temp")
+let cache = new ConcurrentDictionary<MessageId, Message>()
+let logToConsole level msg = printfn "%A: %s" level msg
+
 let fileWriter = FileStore.save workingDir
-let cacheWriter = StoreCache.save dic
+let cacheWriter = StoreCache.save cache
 let loggedWriter = StoreLogger.save logToConsole
-let messageWriter = loggedWriter (cacheWriter fileWriter) 
+
+let messageWriter = fileWriter |> cacheWriter |> loggedWriter 
 
 let fileReader = FileStore.read workingDir
-let cacheReader = StoreCache.read dic
+let cacheReader = StoreCache.read cache
 let loggedReader = StoreLogger.read logToConsole
-let messageReader = loggedReader (cacheReader fileReader)
+
+let messageReader = fileReader |> cacheReader |> loggedReader
 
 // test
-
 let id = MessageId 123
 let msg = { Id = id; Body = "foo"}
 let test = messageReader id
 messageWriter msg |> ignore
 let test2 = messageReader id
-
-
