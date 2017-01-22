@@ -29,7 +29,7 @@ type LogLevel =
 // stores
 
 module FileStore = 
-    let getInfo (dir: DirectoryInfo) (id: MessageId) = 
+    let getInfo (dir: DirectoryInfo) id = 
         MessageInfo (new FileInfo(Path.Combine(dir.FullName, sprintf "%A.txt" (idValue id))))
 
     let save dir msg = 
@@ -76,8 +76,8 @@ module StoreCache =
 
 // composition
 
-let workingDir = new DirectoryInfo("C:\Temp")
-let cache = new ConcurrentDictionary<MessageId, Message>()
+let workingDir = DirectoryInfo("C:\Temp")
+let cache = ConcurrentDictionary<MessageId, Message>()
 let logToConsole level msg = printfn "%A: %s" level msg
 
 let fileWriter = FileStore.save workingDir
