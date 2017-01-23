@@ -3,7 +3,6 @@ open System.IO;
 open System.Collections.Concurrent;
 
 // types
-
 type Result<'TSuccess, 'TError> = 
     | Success of 'TSuccess
     | Failure of 'TError
@@ -27,7 +26,6 @@ type LogLevel =
     | Error
 
 // stores
-
 module FileStore = 
     let getInfo (dir: DirectoryInfo) id = 
         MessageInfo (new FileInfo(Path.Combine(dir.FullName, sprintf "%A.txt" (idValue id))))
@@ -75,7 +73,6 @@ module StoreCache =
         | false, _  -> reader id
 
 // composition
-
 let workingDir = DirectoryInfo("C:\Temp")
 let cache = ConcurrentDictionary<MessageId, Message>()
 let logToConsole level msg = printfn "%A: %s" level msg
@@ -83,13 +80,11 @@ let logToConsole level msg = printfn "%A: %s" level msg
 let fileWriter = FileStore.save workingDir
 let cacheWriter = StoreCache.save cache
 let loggedWriter = StoreLogger.save logToConsole
-
 let messageWriter = fileWriter |> cacheWriter |> loggedWriter 
 
 let fileReader = FileStore.read workingDir
 let cacheReader = StoreCache.read cache
 let loggedReader = StoreLogger.read logToConsole
-
 let messageReader = fileReader |> cacheReader |> loggedReader
 
 // test
